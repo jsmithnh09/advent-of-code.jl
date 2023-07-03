@@ -9,7 +9,7 @@ function findbuff(buffer::String; winsize::Int = 4)
     # this is really just a sliding window with size 4...
     ind = 1
     win = 1
-    while (ind+4-1 <= length(buffer))
+    while (ind+winsize-1 <= length(buffer))
         packet = buffer[ind:ind+winsize-1]
         dupFound = findduplicates(packet)
         if !dupFound
