@@ -58,10 +58,15 @@ function parsefile(instr::String)
                         addfile!(node, String(m[2]), parse(UInt64, m[1]))
                     end
                     line = readline(io)
+                    if isempty(line)
+                        break
+                    end
                 end
             end
             # if we're exiting the list command, check
-            if line[1:4] == "\$ cd"
+            if isempty(line)
+                break
+            elseif line[1:4] == "\$ cd"
                 newfold = String(split(line)[end])
                 if newfold == ".."
                     _ = pop!(trace)
