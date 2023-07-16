@@ -3,6 +3,8 @@ mutable struct Directory
     files::Dict{String, UInt64}
     subdirs::Dict{String, Directory}
 end
+
+### constants and type-aliases
 const File = Dict{String, UInt64}
 const MAX_DIRSIZE = 100000
 const LIST_CMD = "\$ ls"
@@ -14,26 +16,29 @@ function addfile!(d::Directory, name::String, fsize::Integer)
     d.files[name] = UInt64(fsize)
     d
 end
+
 function adddir!(d::Directory, name::String)
     d.subdirs[name] = Directory(name)
 end
+
 function parsefile(instr::String, d::File)
     m = match(RE_FILE, instr)
     d[m[2]] = parse(UInt64, m[1])
 end
+
 function filesum(d::Directory; full::Bool = false)
-    sum = 0
+    sumval = 0
     for filename ∈ keys(d.files)
-        sum += d.files[filename]
+        sumval += d.files[filename]
     end
     if (full)
-        for key in keys(node.subdirs)
-            sum += filesum(node.subdirs[key], full = true)
+        for key in keys(d.subdirs)
+            sumval += filesum(d.subdirs[key], full = true)
         end
     end
-    sum
+    Int(sumval)
 end
-
+        
 function parsefile(instr::String)
     !isfile(instr) && throw(ArgumentError("Not a valid filepath."))
     root = Directory("/")
@@ -47,7 +52,7 @@ function parsefile(instr::String)
             end
             if line == "\$ cd /" # root node.
                 continue
-            elseif line == "\$ ls" # listing node.
+            elseif line == LIST_CMD # listing node.
                 line = readline(io)
                 while line[1] != '$' # listing directories/files.
                     if line[1:3] == "dir"
