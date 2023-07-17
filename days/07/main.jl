@@ -26,6 +26,12 @@ function parsefile(instr::String, d::File)
     d[m[2]] = parse(UInt64, m[1])
 end
 
+"""
+    filesum(d, full = false)
+
+Filesum will determine the sum of the filesizes for the Directory
+`d`. If `full` is true, the recursive size is calculated.
+"""
 function filesum(d::Directory; full::Bool = false)
     sumval = 0
     for filename ∈ keys(d.files)
@@ -38,7 +44,21 @@ function filesum(d::Directory; full::Bool = false)
     end
     Int(sumval)
 end
-        
+filesum(f::File) = Int(sum(values(f)))
+
+
+function sizesum(d::Directory; cursum::Int = 0)
+    size_check = 0
+    for dname ∈ keys(d.subdirs)
+        size_check = filesum(d.subdirs[dname], full = true)
+        if (size_check <= MAX_DIRSIZE)
+            cursum += size_check
+            cursum += sizesum(d.subdirs[dname])
+        end
+    end
+    cursum
+end
+
 function parsefile(instr::String)
     !isfile(instr) && throw(ArgumentError("Not a valid filepath."))
     root = Directory("/")
