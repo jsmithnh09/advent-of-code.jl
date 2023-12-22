@@ -223,8 +223,8 @@ function main()
 end
 
 function main2()
-    mat = mkgearmatrix("E:\\code\\advent2023.jl\\03\\puzzle.txt")
-    vrows = rownums("E:\\code\\advent2023.jl\\03\\puzzle.txt")
+    mat = mkgearmatrix("E:\\code\\advent-of-code.jl\\2023\\03\\puzzle.txt")
+    vrows = rownums("E:\\code\\advent-of-code.jl\\2023\\03\\puzzle.txt")
     (M, N) = size(mat)
     sum = 0
     for rowIdx = 2:M-1
