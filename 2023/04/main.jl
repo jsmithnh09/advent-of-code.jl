@@ -12,7 +12,7 @@ function readhands(fpath::String)
     λp = x->[parse(Int, v) for v in x]
     io = open(fpath)
     Mrows = countlines(io)
-    Nh, Nw, rowidx = 0, 0, 0
+    rowidx = 0
     seek(io, 0)
     line = readline(io)
     seek(io, 0)
@@ -77,23 +77,14 @@ function readclones(fpath)
     cloned
 end
 
-"""
-    part1(fpath)
-
-Prints the results for part I.
-"""
-function part1(fpath::String)
-    wind = readpoints(fpath)
-    println("Part 1: ", values(wind) |> sum)
-end
 
 """
-    part2(fpath)
+    cloneresults(fpath)
 
 First, we'll gather our clone card results. Then, we'll create a "bucket" dictionary where
 we grow the tally in each bucket as we process the winnings.
 """
-function part2(fpath::String)
+function cloneresults(fpath::String)
     cloned = readclones(fpath)
     bidxs = 1:length(keys(cloned))
     bucket = Dict(bidxs .=> 1) # there's always minimum one card to play...
@@ -117,11 +108,22 @@ function part2(fpath::String)
 end
 
 """
+    part1(fpath)
+
+Prints the results for part I.
+"""
+function part1(fpath::String)
+    wind = readpoints(fpath)
+    println("Part 1: ", values(wind) |> sum)
+end
+
+
+"""
     part2(fpath)
 
 Prints the results for part II.
 """
-function part1(fpath::String)
-    wind = part2(fpath)
-    println("Part 1: ", values(wind) |> sum)
+function part2(fpath::String)
+    wind = cloneresults(fpath)
+    println("Part 2: ", values(wind) |> sum)
 end
