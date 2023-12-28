@@ -41,37 +41,87 @@ function readhands(fpath::String)
     (winmat, handmat)
 end
 
-### part I of the challenge
-function part1(winnings, hand)
-    points = 0
+"""
+    windict = readwinnings(fpath)
+
+returns a card # --> cards dictionary for easier parsing with part I.
+"""
+function readpoints(fpath)
+    (winnings, hand) = readhands(fpath)
+    windict = Dict{Int, Int}()
+    for matchidx = axes(hand, 1)
+        windict[matchidx] = intersect(Set(winnings[matchidx,:]), Set(hand[matchidx,:])) |> point_tally
+    end
+    windict
+end
+
+"""
+    clonedict = readclones(fpath)
+
+Create a Dict{Int, Vector{Int}} where the card key
+returns  the cloned cards from that match.
+"""
+function readclones(fpath)
+    cloned = Dict{Int, UnitRange{Int}}()
+    (winnings, hand) = readhands(fpath)
     for matchidx = axes(hand, 1)
         winners = intersect(Set(winnings[matchidx,:]), Set(hand[matchidx,:]))
-        points += point_tally(winners)
-    end
-    points
-    println("Part 1: ", points)
-end
-
-function part2(winnings, hand)
-    # the point tallys will grow the matrix in size...sorry memory!
-    rowIdx = 1
-    cardids = collect(1:size(winnings,1))
-
-    # to avoid growing the matrix size, we'll only grow the card IDs.
-    #   (1) the replica cards are offset from the winning card, (2 points on card 3 gives 4 and 5.)
-    while(rowIdx <= size(cardids, 1)) # winnings and hand, i.e. each "card" or row.
-        winners = intersect(Set(hand[cardids[rowIdx],:]), Set(winnings[cardids[rowIdx],:]))
-        numreplicas = length(winners)
-        if (numreplicas == 0)
-            rowIdx += 1
-            continue
+        nclones = length(winners)
+        if (nclones == 0)
+            cloned[matchidx] = 0:0
         else
-            replicaInds = cardids[rowIdx]+1:cardids[rowIdx]+1+numreplicas-1
-            cardids = vcat(cardids, collect(replicaInds))
-            rowIdx += 1
+            reps = matchidx+1:matchidx+nclones
+            cloned[matchidx] = reps
         end
     end
-    rowIdx-1
+    cloned
 end
-wins, hand = readhands("E:\\code\\advent-of-code.jl\\2023\\04\\example.txt")
-points = part2(wins, hand)
+
+"""
+    part1(fpath)
+
+Prints the results for part I.
+"""
+function part1(fpath::String)
+    wind = readpoints(fpath)
+    println("Part 1: ", values(wind) |> sum)
+end
+
+"""
+    part2(fpath)
+
+First, we'll gather our clone card results. Then, we'll create a "bucket" dictionary where
+we grow the tally in each bucket as we process the winnings.
+"""
+function part2(fpath::String)
+    cloned = readclones(fpath)
+    bidxs = 1:length(keys(cloned))
+    bucket = Dict(bidxs .=> 1) # there's always minimum one card to play...
+    
+    # need to go through each key in order
+    for key in sort(collect(keys(bucket)))
+        iteridx = 1
+        while !(iteridx > bucket[key])
+            # look back to the clone winnings and pull the cloned card for this bucket entry.
+            cards = cloned[key]
+            for c in cards
+                # increment the card # bucket where we pulled a cloned card.
+                if c > 0 && c in keys(bucket)
+                    bucket[c] += 1
+                end
+            end
+            iteridx += 1
+        end
+    end
+    bucket
+end
+
+"""
+    part2(fpath)
+
+Prints the results for part II.
+"""
+function part1(fpath::String)
+    wind = part2(fpath)
+    println("Part 1: ", values(wind) |> sum)
+end
